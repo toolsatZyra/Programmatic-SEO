@@ -9,16 +9,19 @@ test('produces a well-formed SVG at the requested size', () => {
   assert.match(svg, /<\/svg>$/);
 });
 
-test('renders the title and the studio eyebrow', () => {
+test('renders the studio eyebrow but not the post title', () => {
   const svg = heroPatternSvg({ title: 'How AI Micro Drama Works', slug: 'ai-micro-drama' });
   assert.ok(svg.includes('WHERE AI MEETS CINEMA'), 'the eyebrow');
-  assert.ok(svg.includes('Micro Drama'), 'the title words render');
+  assert.ok(!svg.includes('Micro Drama'), 'the title is NOT baked in - the site renders it as <h1>');
+  assert.ok(!svg.includes('<tspan'), 'no title tspans remain');
 });
 
-test('escapes markup in the title rather than injecting it', () => {
+test('never injects the post title into the markup', () => {
   const svg = heroPatternSvg({ title: 'Cost & Value <of> AI', slug: 's' });
-  assert.ok(svg.includes('Cost &amp; Value &lt;of&gt; AI'));
+  // The title is not part of the image at all, so neither the raw nor a
+  // rendered form should appear - and certainly no injected element.
   assert.ok(!svg.includes('<of>'));
+  assert.ok(!svg.includes('Cost'));
 });
 
 test('uses the brand gold', () => {
@@ -50,12 +53,6 @@ test('the rays scale with the canvas, not fixed pixels', () => {
   assert.ok(large.includes('width="1536"'));
 });
 
-test('a long title wraps to at most three lines', () => {
-  const svg = heroPatternSvg({ title: 'A Very Long Blog Title That Should Wrap Across Several Lines For Sure', slug: 's' });
-  const tspans = svg.match(/<tspan /g)?.length ?? 0;
-  assert.ok(tspans >= 1 && tspans <= 3, `expected 1-3 lines, got ${tspans}`);
-});
-
 test('is inert markup: no script or external refs', () => {
   const svg = heroPatternSvg({ title: 'x', slug: 's' });
   assert.ok(!/script|href|xlink/i.test(svg));
@@ -69,7 +66,6 @@ test('every motif renders a complete hero', () => {
     assert.match(svg, /^<svg[^>]*>/, `${m}: opens`);
     assert.match(svg, /<\/svg>$/, `${m}: closes`);
     assert.ok(svg.includes('WHERE AI MEETS CINEMA'), `${m}: eyebrow`);
-    assert.ok(svg.includes('Brand'), `${m}: title`);
     assert.ok(svg.includes(GOLD), `${m}: brand gold`);
     assert.ok(svg.includes(`data-motif="${m}"`), `${m}: tagged with its motif`);
     // The motif's art lives in the <g> group. Assert the group is non-empty

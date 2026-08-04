@@ -1,8 +1,10 @@
 // The blog hero as a generated PATTERN, not a photo.
 //
 // One system, thirty-two motifs. Every hero shares the same chrome - near-black
-// field, gold glow, bottom fade, studio eyebrow, cream serif title, gold rule -
-// and the slug picks which motif fills the space behind it:
+// field, gold glow, bottom fade, studio eyebrow, gold rule - and the slug picks
+// which motif fills the space behind it. The post title is NOT baked into the
+// image: the site renders it as real <h1> text, so it stays selectable,
+// translatable and good for SEO, and never reads twice on the article page.
 //
 //   rays     a fan of thin gold projector beams from the top-right
 //   contour  flowing topographic gold curves
@@ -22,7 +24,6 @@
 // this to the committed PNG (see rasterizeSvg.ts).
 
 export const GOLD = '#c9a876';
-const CREAM = '#ece9e2';
 const EYEBROW = 'ZYRA · WHERE AI MEETS CINEMA';
 
 export const MOTIFS = [
@@ -82,23 +83,9 @@ function round(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-/** Wrap the title to at most `maxLines` lines of roughly `perLine` chars. */
-function wrap(title: string, perLine: number, maxLines: number): string[] {
-  const words = title.split(/\s+/);
-  const lines: string[] = [];
-  let cur = '';
-  for (const w of words) {
-    if ((cur + ' ' + w).trim().length > perLine && cur) { lines.push(cur.trim()); cur = w; }
-    else cur = (cur + ' ' + w).trim();
-    if (lines.length === maxLines) break;
-  }
-  if (cur && lines.length < maxLines) lines.push(cur.trim());
-  return lines;
-}
-
 // ── motifs ──────────────────────────────────────────────────────────────────
 // Each returns inner SVG markup and keeps clear of the lower-left, where the
-// title sits.
+// brand mark sits.
 
 function raysMotif(w: number, h: number, rand: () => number): string {
   const count = 7 + Math.floor(rand() * 5);
@@ -677,15 +664,11 @@ export function heroPatternSvg({ title, slug, width = 1536, height = 1024, motif
   const chosen: Motif = motif ?? motifFor(key, variant);
   const art = RENDERERS[chosen](width, height, rand);
 
-  const titleLines = wrap(title, 24, 3);
-  const titleSize = round(height * 0.052);
-  const baseY = round(height * 0.60);
+  // The title is rendered by the site as an <h1>, not baked in here - so the
+  // hero carries only the brand mark and rule in the lower-left.
   const leftX = round(width * 0.034);
-  const tspans = titleLines
-    .map((l, i) => `<tspan x="${leftX}" dy="${i === 0 ? 0 : round(titleSize * 1.18)}">${esc(l)}</tspan>`)
-    .join('');
-  const eyebrowY = round(baseY - titleSize - height * 0.03);
-  const ruleY = round(baseY + titleLines.length * titleSize * 1.18 - titleSize + height * 0.02);
+  const eyebrowY = round(height * 0.60);
+  const ruleY = round(height * 0.63);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" data-motif="${chosen}">
   <defs>
@@ -706,8 +689,7 @@ export function heroPatternSvg({ title, slug, width = 1536, height = 1024, motif
   <g>${art}</g>
   <rect width="${width}" height="${height}" fill="url(#hp-glow-${chosen})"/>
   <rect width="${width}" height="${height}" fill="url(#hp-fade-${chosen})"/>
-  <text x="${leftX}" y="${eyebrowY}" fill="${GOLD}" font-family="Georgia, serif" font-size="${round(height * 0.019)}" letter-spacing="6">${esc(EYEBROW)}</text>
-  <text y="${baseY}" fill="${CREAM}" font-family="Georgia, serif" font-size="${titleSize}" font-weight="400">${tspans}</text>
+  <text x="${leftX}" y="${eyebrowY}" fill="${GOLD}" font-family="Georgia, serif" font-size="${round(height * 0.022)}" letter-spacing="6">${esc(EYEBROW)}</text>
   <rect x="${leftX}" y="${ruleY}" width="${round(width * 0.05)}" height="${Math.max(2, round(height * 0.004))}" fill="${GOLD}"/>
 </svg>`;
 }
