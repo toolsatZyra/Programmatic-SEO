@@ -62,15 +62,16 @@ export function ExportTab({ exports, brief, inputs, audit, draft }: { exports?: 
   const blogPostTs = `// paste into src/lib/blog-data.ts → ALL_POSTS\n${JSON.stringify(blogPost, null, 2)}`;
 
   // The hero is a generated PATTERN, not a photo: a deterministic branded SVG
-  // (cinematic light rays + title, seeded by the slug) rasterised to PNG in the
-  // browser. No API call, no cost, and every post gets a hero from one family.
+  // (a cinematic motif + the post's category label, seeded by the slug)
+  // rasterised to PNG in the browser. No API call, no cost, and every post gets
+  // a hero from one family. The title is not baked in - the site renders it.
   async function generateImage(nextVariant = variant) {
     if (!exports) return;
     setImgLoading(true); setImgErr(''); setHero(undefined);
     try {
-      const { title, slug } = exports.blogPost;
+      const { title, slug, category } = exports.blogPost;
       const W = 1536, H = 1024;
-      const svg = heroPatternSvg({ title, slug, width: W, height: H, variant: nextVariant });
+      const svg = heroPatternSvg({ title, slug, category, width: W, height: H, variant: nextVariant });
       const base64 = await svgToPngBase64(svg, W, H);
       setHero({
         dataUrl: `data:image/png;base64,${base64}`,

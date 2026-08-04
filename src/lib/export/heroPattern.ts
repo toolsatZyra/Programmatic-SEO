@@ -1,9 +1,10 @@
 // The blog hero as a generated PATTERN, not a photo.
 //
 // One system, thirty-two motifs. Every hero shares the same chrome - near-black
-// field, gold glow, bottom fade, studio eyebrow, gold rule - and the slug picks
-// which motif fills the space behind it. The post title is NOT baked into the
-// image: the site renders it as real <h1> text, so it stays selectable,
+// field, gold glow, bottom fade, a small lower-left label, gold rule - and the
+// slug picks which motif fills the space behind it. The label is the post's
+// category when supplied (else the studio tagline). The post title is NOT baked
+// into the image: the site renders it as real <h1> text, so it stays selectable,
 // translatable and good for SEO, and never reads twice on the article page.
 //
 //   rays     a fan of thin gold projector beams from the top-right
@@ -39,6 +40,12 @@ export interface PatternInput {
   slug: string;
   width?: number;
   height?: number;
+  /**
+   * Small label shown in the lower-left. Pass the post's category
+   * (e.g. 'Playbook') so each hero reads specifically to its post; it is
+   * uppercased on render. Falls back to the studio tagline when omitted.
+   */
+  category?: string;
   /** Override the slug-derived motif. Used by the studio's motif picker. */
   motif?: Motif;
   /**
@@ -656,7 +663,7 @@ const RENDERERS: Record<Motif, (w: number, h: number, rand: () => number) => str
  * The hero SVG for a post. Deterministic in every input: the same slug always
  * yields the same motif and the same geometry.
  */
-export function heroPatternSvg({ title, slug, width = 1536, height = 1024, motif, variant = 0 }: PatternInput): string {
+export function heroPatternSvg({ title, slug, width = 1536, height = 1024, category, motif, variant = 0 }: PatternInput): string {
   const key = slug || title;
   // The variant shifts both the motif and the geometry seed, so cycling gives a
   // genuinely different hero rather than the same drawing in a new shape.
@@ -665,7 +672,9 @@ export function heroPatternSvg({ title, slug, width = 1536, height = 1024, motif
   const art = RENDERERS[chosen](width, height, rand);
 
   // The title is rendered by the site as an <h1>, not baked in here - so the
-  // hero carries only the brand mark and rule in the lower-left.
+  // hero carries only a small label and rule in the lower-left. The label is
+  // the post's category when supplied, otherwise the studio tagline.
+  const eyebrow = category ? category.toUpperCase() : EYEBROW;
   const leftX = round(width * 0.034);
   const eyebrowY = round(height * 0.60);
   const ruleY = round(height * 0.63);
@@ -689,7 +698,7 @@ export function heroPatternSvg({ title, slug, width = 1536, height = 1024, motif
   <g>${art}</g>
   <rect width="${width}" height="${height}" fill="url(#hp-glow-${chosen})"/>
   <rect width="${width}" height="${height}" fill="url(#hp-fade-${chosen})"/>
-  <text x="${leftX}" y="${eyebrowY}" fill="${GOLD}" font-family="Georgia, serif" font-size="${round(height * 0.022)}" letter-spacing="6">${esc(EYEBROW)}</text>
+  <text x="${leftX}" y="${eyebrowY}" fill="${GOLD}" font-family="Georgia, serif" font-size="${round(height * 0.022)}" letter-spacing="6">${esc(eyebrow)}</text>
   <rect x="${leftX}" y="${ruleY}" width="${round(width * 0.05)}" height="${Math.max(2, round(height * 0.004))}" fill="${GOLD}"/>
 </svg>`;
 }

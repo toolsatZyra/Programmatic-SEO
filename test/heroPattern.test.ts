@@ -16,6 +16,12 @@ test('renders the studio eyebrow but not the post title', () => {
   assert.ok(!svg.includes('<tspan'), 'no title tspans remain');
 });
 
+test('shows the post category as the lower-left label when given', () => {
+  const svg = heroPatternSvg({ title: 'How AI Micro Drama Works', slug: 'ai-micro-drama', category: 'Playbook' });
+  assert.ok(svg.includes('PLAYBOOK'), 'category is uppercased into the label');
+  assert.ok(!svg.includes('WHERE AI MEETS CINEMA'), 'the tagline is replaced by the category');
+});
+
 test('never injects the post title into the markup', () => {
   const svg = heroPatternSvg({ title: 'Cost & Value <of> AI', slug: 's' });
   // The title is not part of the image at all, so neither the raw nor a
